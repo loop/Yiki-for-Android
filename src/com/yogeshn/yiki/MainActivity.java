@@ -54,7 +54,7 @@ public class MainActivity extends Activity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		if (item.getItemId() == R.id.menu_save) {
 			if (!noContent()) {
-			savePost();
+				savePost();
 			}
 			return true;
 		} else if (item.getItemId() == R.id.menu_clear) {
@@ -78,39 +78,89 @@ public class MainActivity extends Activity {
 			createStyleSheet();
 		}
 		File myFile = new File(folder, postTitleFormatter() + ".html");
-		try {
-			FileWriter writer = new FileWriter(myFile);
-			writer.append("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">");
-			writer.append(System.getProperty("line.separator"));
-			writer.append("<html xmlns=\"http://www.w3.org/1999/xhtml\" dir=\"ltr\" lang=\"en-US\">");
-			writer.append(System.getProperty("line.separator"));
-			writer.append("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" >");
-			writer.append(System.getProperty("line.separator"));
-			writer.append("<head>\n<title>" + postTitle.getText().toString()
-					+ "</title>\n<link href=\"style.css\" rel=\"stylesheet\" type=\"text/css\">\n</head>");
-			writer.append(System.getProperty("line.separator"));
-			writer.append("<body>");
-			writer.append(System.getProperty("line.separator"));
-			writer.append("<h1>\n<a href=\"#\" class=\"p\" rel=\"nofollow\">" + postTitle.getText().toString()
-					+ "</a>\n</h1>\n");
-			writer.append("<p><em>" + date.getText().toString() + "</em></p>\n");
-			writer.append("<div id=\"wiki\">\n<div>\n");
-			writer.append("<p>" + postContent.getText().toString() + "</p>\n");
-			writer.append("</div>\n");
-			writer.append("</div>\n");
-			writer.append("\n</body>\n</html>");
-			writer.flush();
-			writer.close();
-			Toast.makeText(this, "Post saved.", Toast.LENGTH_SHORT).show();
-		} catch (IOException e) {
-			e.printStackTrace();
-			Toast.makeText(this, "Something went wrong. Post not saved.", Toast.LENGTH_SHORT).show();
+		if (myFile.exists()) {
+			Toast.makeText(this, "File with same name exists", Toast.LENGTH_SHORT).show();
+		} else {
+			try {
+				FileWriter writer = new FileWriter(myFile);
+				writer.append("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">");
+				writer.append(System.getProperty("line.separator"));
+				writer.append("<html xmlns=\"http://www.w3.org/1999/xhtml\" dir=\"ltr\" lang=\"en-US\">");
+				writer.append(System.getProperty("line.separator"));
+				writer.append("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" >");
+				writer.append(System.getProperty("line.separator"));
+				writer.append("<head>\n<title>" + postTitle.getText().toString()
+						+ "</title>\n<link href=\"style.css\" rel=\"stylesheet\" type=\"text/css\">\n</head>");
+				writer.append(System.getProperty("line.separator"));
+				writer.append("<body>");
+				writer.append(System.getProperty("line.separator"));
+				writer.append("<h1>\n<a href=\"#\" class=\"p\" rel=\"nofollow\">" + postTitle.getText().toString()
+						+ "</a>\n</h1>\n");
+				writer.append("<p><em>" + date.getText().toString() + "</em></p>\n");
+				writer.append("<div id=\"wiki\">\n<div>\n");
+				writer.append("<p>" + postContent.getText().toString() + "</p>\n");
+				writer.append("</div>\n");
+				writer.append("</div>\n");
+				writer.append("\n</body>\n</html>");
+				writer.flush();
+				writer.close();
+				createPostIndex();
+				Toast.makeText(this, "Post saved.", Toast.LENGTH_SHORT).show();
+			} catch (IOException e) {
+				e.printStackTrace();
+				Toast.makeText(this, "Something went wrong. Post not saved.", Toast.LENGTH_SHORT).show();
+			}
 		}
 
 	}
 
+	@SuppressLint("SimpleDateFormat")
+	private void createPostIndex() {
+		Date year = new Date();
+		SimpleDateFormat df = new SimpleDateFormat("yyyy");
+		String yearString = df.format(year);
+		File postIndex = new File(folder, yearString + ".html");
+		if (postIndex.exists()) {
+			try {
+				FileWriter writer = new FileWriter(postIndex, true);
+
+				writer.append("<a href=\"" + postTitleFormatter() + ".html" + "\">" + postTitle.getText().toString()
+						+ "</a> - " + "<em>" + date.getText().toString() + "</em>" + "<br >");
+				writer.append(System.getProperty("line.separator"));
+				writer.flush();
+				writer.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		} else {
+			try {
+				FileWriter writer = new FileWriter(postIndex, true);
+				writer.append("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">");
+				writer.append(System.getProperty("line.separator"));
+				writer.append("<html xmlns=\"http://www.w3.org/1999/xhtml\" dir=\"ltr\" lang=\"en-US\">");
+				writer.append(System.getProperty("line.separator"));
+				writer.append("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" >");
+				writer.append(System.getProperty("line.separator"));
+				writer.append("<head>\n<title>" + yearString
+						+ "</title>\n<link href=\"style.css\" rel=\"stylesheet\" type=\"text/css\">\n</head>");
+				writer.append(System.getProperty("line.separator"));
+				writer.append("<body>");
+				writer.append(System.getProperty("line.separator"));
+				writer.append("<h1>\n<a href=\"#\" class=\"p\" rel=\"nofollow\">" + yearString + "</a>\n</h1>\n");
+				writer.append("<a href=\"" + postTitleFormatter() + ".html" + "\">" + postTitle.getText().toString()
+						+ "</a> - " + "<em>" + date.getText().toString() + "</em>" + "<br >");
+				writer.append(System.getProperty("line.separator"));
+				writer.append("\n</body>\n</html>");
+				writer.flush();
+				writer.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
 	private boolean noContent() {
-		if (postContent.getText().toString().length()==0 || postTitle.getText().toString().length()==0) {
+		if (postContent.getText().toString().length() == 0 || postTitle.getText().toString().length() == 0) {
 			Toast.makeText(this, "Title or content is blank", Toast.LENGTH_SHORT).show();
 			return true;
 		} else {
@@ -122,7 +172,7 @@ public class MainActivity extends Activity {
 		File stylesheet = new File(folder, "style.css");
 		try {
 			FileWriter writer = new FileWriter(stylesheet);
-			writer.append("@charset \"utf-8\"; #wiki { font-family: \"Courier New\", Courier, monospace; } .p {font-family: \"Courier New\", Courier, monospace;}.p {font-family: \"Courier New\", Courier, monospace;}.h1 {font-family: \"Courier New\", Courier, monospace;}.nav {font-family: \"Courier New\", Courier, monospace;}");
+			writer.append("@charset \"utf-8\"; #wiki { font-family: \"Courier New\", Courier, monospace; } .p {font-family: \"Courier New\", Courier, monospace;}.p {font-family: \"Courier New\", Courier, monospace;}.h1 {font-family: \"Courier New\", Courier, monospace;}.nav {font-family: \"Courier New\", Courier, monospace;} body{font-family: \"Courier New\", Courier, monospace;}");
 			writer.flush();
 			writer.close();
 		} catch (IOException e) {
@@ -133,7 +183,7 @@ public class MainActivity extends Activity {
 
 	private String postTitleFormatter() {
 		String sPostTitle = postTitle.getText().toString().toLowerCase(Locale.getDefault())
-				.replaceAll("[^a-z\\sA-Z]", "");
+				.replaceAll("[^a-z\\sA-Z0-9]", "");
 		String formattedPostTitle = sPostTitle.replace(" ", "-");
 		return formattedPostTitle;
 	}
