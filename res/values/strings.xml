@@ -8,5 +8,9 @@
     <string name="menu_save">Save</string>
     <string name="menu_delete">Delete</string>
     <string name="date">Date</string>
+    <string name="paragraph_tags">Add Paragraph Tags</string>
+    <string name="bold_tags">Add Bold Tags</string>
+    <string name="italic_tags">Add Italic Tags</string>
+    <string name="add_image">Add Image</string>
 
 </resources>

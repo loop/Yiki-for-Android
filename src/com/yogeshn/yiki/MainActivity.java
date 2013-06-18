@@ -1,28 +1,44 @@
 package com.yogeshn.yiki;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Map;
+
+import com.beanie.imagechooser.api.ChooserType;
+import com.beanie.imagechooser.api.ChosenImage;
+import com.beanie.imagechooser.api.ImageChooserListener;
+import com.beanie.imagechooser.api.ImageChooserManager;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
-import android.os.Environment;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements ImageChooserListener {
 
 	EditText postTitle;
 	EditText postContent;
 	TextView date;
 	File folder;
+	File externalSdCard;
+	File sdCard;
+	Map<String, File> externalLocations;
+	ImageChooserManager image;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -32,7 +48,9 @@ public class MainActivity extends Activity {
 		postContent = (EditText) findViewById(R.id.post_content);
 		date = (TextView) findViewById(R.id.date);
 		setDate();
-
+		externalLocations = ExternalStorage.getAllStorageLocations();
+		sdCard = externalLocations.get(ExternalStorage.SD_CARD);
+		externalSdCard = externalLocations.get(ExternalStorage.EXTERNAL_SD_CARD);
 	}
 
 	@SuppressLint("SimpleDateFormat")
@@ -60,8 +78,33 @@ public class MainActivity extends Activity {
 		} else if (item.getItemId() == R.id.menu_clear) {
 			clearContent();
 			return true;
+		} else if (item.getItemId() == R.id.action_paragraph) {
+			addParagraphTags("<p></p>");
+			return true;
+		} else if (item.getItemId() == R.id.action_bold) {
+			addParagraphTags("<b></b>");
+			return true;
+		} else if (item.getItemId() == R.id.action_italic) {
+			addParagraphTags("<em></em>");
+			return true;
+		} else if (item.getItemId() == R.id.action_image) {
+			addImage();
+			return true;
 		}
 		return false;
+	}
+
+	private void addImage() {
+		image = new ImageChooserManager(this, ChooserType.REQUEST_PICK_PICTURE);
+		image.setImageChooserListener(this);
+		image.choose();
+	}
+
+	private void addParagraphTags(String tags) {
+		int start = postContent.getSelectionStart();
+		int end = postContent.getSelectionEnd();
+
+		postContent.getText().replace(Math.min(start, end), Math.max(start, end), tags, 0, tags.length());
 	}
 
 	private void clearContent() {
@@ -72,7 +115,7 @@ public class MainActivity extends Activity {
 	}
 
 	private void savePost() {
-		folder = new File(Environment.getExternalStorageDirectory().toString() + "/yiki");
+		folder = new File(externalLocations.get("externalSdCard") + "/Yikis");
 		if (!folder.exists()) {
 			folder.mkdirs();
 			createStyleSheet();
@@ -186,6 +229,74 @@ public class MainActivity extends Activity {
 				.replaceAll("[^a-z\\sA-Z0-9]", "");
 		String formattedPostTitle = sPostTitle.replace(" ", "-");
 		return formattedPostTitle;
+	}
+
+	private void copyFile(String inputPath, String inputFile, String outputPath) {
+
+		InputStream in = null;
+		OutputStream out = null;
+		try {
+
+			// create output directory if it doesn't exist
+			File dir = new File(outputPath);
+			if (!dir.exists()) {
+				dir.mkdirs();
+			}
+
+			in = new FileInputStream(inputPath + inputFile);
+			out = new FileOutputStream(outputPath + inputFile);
+
+			byte[] buffer = new byte[1024];
+			int read;
+			while ((read = in.read(buffer)) != -1) {
+				out.write(buffer, 0, read);
+			}
+			in.close();
+			in = null;
+
+			// write the output file (You have now copied the file)
+			out.flush();
+			out.close();
+			out = null;
+
+		} catch (FileNotFoundException fnfe1) {
+			Log.e("tag", fnfe1.getMessage());
+		} catch (Exception e) {
+			Log.e("tag", e.getMessage());
+		}
+
+	}
+
+	@Override
+	public void onImageChosen(ChosenImage image) {
+		Date year = new Date();
+		SimpleDateFormat df = new SimpleDateFormat("yyyy");
+		String yearString = df.format(year);
+		File imageFolder = new File(externalLocations.get("externalSdCard") + "/Yikis/" + yearString);
+		if (!imageFolder.exists()) {
+			imageFolder.mkdirs();
+		}
+		copyFile(image.getFilePathOriginal(), image.getFilePathOriginal(), imageFolder.getAbsolutePath());
+	}
+
+	@Override
+	public void onError(final String reason) {
+	    runOnUiThread(new Runnable() {
+
+	        @Override
+	        public void run() {
+	           Toast.makeText(getApplicationContext(), "Something went wrong!", Toast.LENGTH_SHORT).show();
+	        }
+	    });
+	}
+	
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+	    if (resultCode == RESULT_OK && 
+	        (requestCode == ChooserType.REQUEST_PICK_PICTURE ||
+	                requestCode == ChooserType.REQUEST_CAPTURE_PICTURE)) {
+	        image.submit(requestCode, data);
+	    }
 	}
 
 }
