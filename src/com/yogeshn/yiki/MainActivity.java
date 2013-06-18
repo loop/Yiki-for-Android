@@ -31,6 +31,7 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity implements ImageChooserListener {
 
+	String YIKIFOLDERNAME = "Test";
 	EditText postTitle;
 	EditText postContent;
 	TextView date;
@@ -115,7 +116,7 @@ public class MainActivity extends Activity implements ImageChooserListener {
 	}
 
 	private void savePost() {
-		folder = new File(externalLocations.get("externalSdCard") + "/Yikis");
+		folder = new File(externalLocations.get("externalSdCard") + "/" + YIKIFOLDERNAME + "/" + getYear());
 		if (!folder.exists()) {
 			folder.mkdirs();
 			createStyleSheet();
@@ -159,15 +160,12 @@ public class MainActivity extends Activity implements ImageChooserListener {
 
 	@SuppressLint("SimpleDateFormat")
 	private void createPostIndex() {
-		Date year = new Date();
-		SimpleDateFormat df = new SimpleDateFormat("yyyy");
-		String yearString = df.format(year);
-		File postIndex = new File(folder, yearString + ".html");
+		File postIndex = new File(externalLocations.get("externalSdCard") + "/" + YIKIFOLDERNAME + "/", getYear() + ".html");
 		if (postIndex.exists()) {
 			try {
 				FileWriter writer = new FileWriter(postIndex, true);
 
-				writer.append("<a href=\"" + postTitleFormatter() + ".html" + "\">" + postTitle.getText().toString()
+				writer.append("<a href=\"" + getYear() + "/" + postTitleFormatter() + ".html" + "\">" + postTitle.getText().toString()
 						+ "</a> - " + "<em>" + date.getText().toString() + "</em>" + "<br >");
 				writer.append(System.getProperty("line.separator"));
 				writer.flush();
@@ -184,13 +182,13 @@ public class MainActivity extends Activity implements ImageChooserListener {
 				writer.append(System.getProperty("line.separator"));
 				writer.append("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" >");
 				writer.append(System.getProperty("line.separator"));
-				writer.append("<head>\n<title>" + yearString
+				writer.append("<head>\n<title>" + getYear()
 						+ "</title>\n<link href=\"style.css\" rel=\"stylesheet\" type=\"text/css\">\n</head>");
 				writer.append(System.getProperty("line.separator"));
 				writer.append("<body>");
 				writer.append(System.getProperty("line.separator"));
-				writer.append("<h1>\n<a href=\"#\" class=\"p\" rel=\"nofollow\">" + yearString + "</a>\n</h1>\n");
-				writer.append("<a href=\"" + postTitleFormatter() + ".html" + "\">" + postTitle.getText().toString()
+				writer.append("<h1>\n<a href=\"#\" class=\"p\" rel=\"nofollow\">" + getYear() + "</a>\n</h1>\n");
+				writer.append("<a href=\"" + getYear() + "/" + postTitleFormatter() + ".html" + "\">" + postTitle.getText().toString()
 						+ "</a> - " + "<em>" + date.getText().toString() + "</em>" + "<br >");
 				writer.append(System.getProperty("line.separator"));
 				writer.append("\n</body>\n</html>");
@@ -213,11 +211,16 @@ public class MainActivity extends Activity implements ImageChooserListener {
 
 	private void createStyleSheet() {
 		File stylesheet = new File(folder, "style.css");
+		File stylesheetTwo = new File(externalLocations.get("externalSdCard") + "/" + YIKIFOLDERNAME, "style.css");
 		try {
 			FileWriter writer = new FileWriter(stylesheet);
 			writer.append("@charset \"utf-8\"; #wiki { font-family: \"Courier New\", Courier, monospace; } .p {font-family: \"Courier New\", Courier, monospace;}.p {font-family: \"Courier New\", Courier, monospace;}.h1 {font-family: \"Courier New\", Courier, monospace;}.nav {font-family: \"Courier New\", Courier, monospace;} body{font-family: \"Courier New\", Courier, monospace;}");
 			writer.flush();
 			writer.close();
+			FileWriter writerTwo = new FileWriter(stylesheetTwo);
+			writerTwo.append("@charset \"utf-8\"; #wiki { font-family: \"Courier New\", Courier, monospace; } .p {font-family: \"Courier New\", Courier, monospace;}.p {font-family: \"Courier New\", Courier, monospace;}.h1 {font-family: \"Courier New\", Courier, monospace;}.nav {font-family: \"Courier New\", Courier, monospace;} body{font-family: \"Courier New\", Courier, monospace;}");
+			writerTwo.flush();
+			writerTwo.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -269,14 +272,18 @@ public class MainActivity extends Activity implements ImageChooserListener {
 
 	@Override
 	public void onImageChosen(ChosenImage image) {
-		Date year = new Date();
-		SimpleDateFormat df = new SimpleDateFormat("yyyy");
-		String yearString = df.format(year);
-		File imageFolder = new File(externalLocations.get("externalSdCard") + "/Yikis/" + yearString);
+		File imageFolder = new File(externalLocations.get("externalSdCard") + "/" + YIKIFOLDERNAME + "/" + getYear());
 		if (!imageFolder.exists()) {
 			imageFolder.mkdirs();
 		}
 		copyFile(image.getFilePathOriginal(), image.getFilePathOriginal(), imageFolder.getAbsolutePath());
+	}
+	
+	public String getYear() {
+		Date year = new Date();
+		SimpleDateFormat df = new SimpleDateFormat("yyyy");
+		String yearString = df.format(year);
+		return yearString;
 	}
 
 	@Override
