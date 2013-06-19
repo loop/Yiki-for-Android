@@ -31,7 +31,7 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity implements ImageChooserListener {
 
-	String YIKIFOLDERNAME = "Test";
+	String YIKIFOLDERNAME = "Yiki";
 	EditText postTitle;
 	EditText postContent;
 	TextView date;
@@ -276,7 +276,7 @@ public class MainActivity extends Activity implements ImageChooserListener {
 		if (!imageFolder.exists()) {
 			imageFolder.mkdirs();
 		}
-		copyFile(image.getFilePathOriginal(), image.getFilePathOriginal(), imageFolder.getAbsolutePath());
+        Toast.makeText(getApplicationContext(), "image.getFilePathOriginal()", Toast.LENGTH_SHORT).show();
 	}
 	
 	public String getYear() {
